@@ -3,21 +3,17 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 
-# ─── PAGE CONFIG ─────────────────────────────────────
 st.set_page_config(page_title="Nassau Candy Profitability", layout="wide")
 
 st.title("Nassau Candy Distributor – Profitability & Margin Analysis")
 st.caption("Product-level profit, margin, and cost performance dashboard")
 
-# ─── LOAD DATA ───────────────────────────────────────
 @st.cache_data
 def load_data():
     df = pd.read_csv("Nassau Candy Distributor.csv")
 
-    # Convert date
     df['Order Date'] = pd.to_datetime(df['Order Date'], format='%d-%m-%Y', errors='coerce')
 
-    # Create metrics
     df['Gross Margin %'] = (df['Gross Profit'] / df['Sales'] * 100).round(2)
     df['Profit per Unit'] = df['Gross Profit'] / df['Units']
 
@@ -25,7 +21,6 @@ def load_data():
 
 df = load_data()
 
-# ─── SIDEBAR FILTERS ─────────────────────────────────
 st.sidebar.header("Filters")
 
 date_range = st.sidebar.date_input(
@@ -40,7 +35,6 @@ min_margin = st.sidebar.slider("Minimum Margin %", 0, 100, 35)
 
 product_search = st.sidebar.text_input("Search Product")
 
-# ─── APPLY FILTERS ───────────────────────────────────
 f_df = df.copy()
 
 if len(date_range) == 2:
@@ -57,7 +51,6 @@ f_df = f_df[f_df['Gross Margin %'] >= min_margin]
 if product_search:
     f_df = f_df[f_df['Product Name'].str.contains(product_search, case=False, na=False)]
 
-# ─── KPIs ────────────────────────────────────────────
 total_sales = f_df['Sales'].sum()
 total_profit = f_df['Gross Profit'].sum()
 total_units = f_df['Units'].sum()
@@ -75,7 +68,6 @@ col5.metric("Total Records", len(f_df))
 
 st.markdown("---")
 
-# ─── TABS ────────────────────────────────────────────
 tab1, tab2, tab3, tab4 = st.tabs([
     "Product Overview",
     "Division Performance",
@@ -83,7 +75,6 @@ tab1, tab2, tab3, tab4 = st.tabs([
     "Pareto Analysis"
 ])
 
-# ─── TAB 1: PRODUCT OVERVIEW ─────────────────────────
 with tab1:
     st.subheader("Top Products by Profit & Margin")
 
@@ -120,7 +111,6 @@ with tab1:
         fig2.update_layout(xaxis_tickangle=45)
         st.plotly_chart(fig2, use_container_width=True)
 
-# ─── TAB 2: DIVISION PERFORMANCE ─────────────────────
 with tab2:
     st.subheader("Division Performance")
 
@@ -147,7 +137,6 @@ with tab2:
     )
     st.plotly_chart(fig2, use_container_width=True)
 
-# ─── TAB 3: COST DIAGNOSTICS ─────────────────────────
 with tab3:
     st.subheader("Cost vs Sales Analysis")
 
@@ -184,7 +173,6 @@ with tab3:
     else:
         st.dataframe(risk[['Product Name', 'Sales', 'Cost', 'Gross Profit', 'Gross Margin %']])
 
-# ─── TAB 4: PARETO ANALYSIS ──────────────────────────
 with tab4:
     st.subheader("Profit Contribution (Pareto)")
 
@@ -208,7 +196,6 @@ with tab4:
         top5 = pareto['cum_%'].iloc[4]
         st.info(f"Top 5 products contribute ~{top5:.1f}% of total profit")
 
-# ─── DOWNLOAD BUTTON ─────────────────────────────────
 st.markdown("---")
 
 if not f_df.empty:
